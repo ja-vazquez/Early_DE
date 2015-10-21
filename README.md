@@ -26,8 +26,8 @@ The main module to bear in mind is `Quint_init_background`.
 
 Both files, py and F90, produce the same results at the background level:
 
-![](Quintb_vl.pdf =600x)
-![](Quintb_vAl.pdf =600x) 
+![](https://github.com/ja-vazquez/Early_DE/blob/master/Quintb_vl.pdf =600x)
+![](https://github.com/ja-vazquez/Early_DE/blob/master/Quintb_vAl.pdf =600x) 
 
 
 

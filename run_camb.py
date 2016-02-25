@@ -1,8 +1,9 @@
 
 import os
 
-lede = [(3.5, 10.5),(4.5, 9),(5.5,7.5),(6.5,6.5),(7.5,5.5)]#[(5, 10.5)] #, (8.5, 8.5), (8.5, 7.5), (8.5, 6.5), (8.5, 6.)]
+lede = [(3.5, 10.5) ,(4.5, 9), (5.5,7.5), (6.5,6.5), (7.5,5.5)]#[(5, 10.5)] #, (8.5, 8.5), (8.5, 7.5), (8.5, 6.5), (8.5, 6.)]
 #lede = [(8.5, 6.)]
+amp = [2.008, 1.96, 1.885, 1.805, 1.68]
 
 theta_lcdm =1.040911
 # 1.041887 
@@ -28,10 +29,12 @@ with open('ede_values.dat','wa') as fede:
      #line2 = "omega_ede      = %f"%(ede)
      line2 = "ede_Da_file = test_ede_Da_0%i.dat"%(i*100)
      line3 = "ede_Om_file = test_ede_Om_%i.dat"%(i*100)
+     line4 = "output_root = test%i"%(i*100)
+     line5 = "scalar_amp(1)             = %fe-9"%(amp[i-2])
      commd = """
-       sed '1i%s\n  2i%s\n 3i%s\n 4i%s\n 5i%s'  params_quint.ini > params1.ini
+       sed '1i%s\n  2i%s\n 3i%s\n 4i%s\n 5i%s\n 6i%s\n 7i%s'  params_quint.ini > params1.ini
        ./camb params1.ini > out.txt
-     """%(line, linea, lineb,line2, line3)
+     """%(line, linea, lineb,line2, line3, line4, line5)
      os.system(commd)
 
      with open('out.txt','r') as f:

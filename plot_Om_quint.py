@@ -25,10 +25,10 @@ pylab.rcParams.update(params1)
 def colour(x):
     if x==1: return 'red'
     if x==2: return 'blue'
-    if x==3: return 'black'
-    if x==4: return 'magenta'
-    if x==5: return 'cyan'
-    if x==6: return 'orange'
+    if x==3: return 'green'
+    if x==4: return 'cyan'
+    if x==5: return 'magenta'
+    if x==6: return 'black'
     if x==7: return 'green'
     if x==8: return 'yellow'
     if x==9: return 'purple'
@@ -151,6 +151,26 @@ for i in range(0,len(names)):
    #print nn0, nn1, nn2  
 #-------------------------------------
 
+names_cls = ['test_200_scalCls.dat','test_300_scalCls.dat','test_400_scalCls.dat',
+		'test_500_scalCls.dat','test_600_scalCls.dat', 'test_lcdm_scalCls.dat']
+
+i =0
+Tlcls, Tcmb = [], []
+for name in names_cls:
+  clsnames=open(dir+name).readlines()
+  lpnames = len(clsnames)
+  lcls, cmb = [], []
+ 
+  for l in range(lpnames):
+	vals =clsnames[l].split()[0:]
+	lcls.append(float(vals[0]))
+	cmb.append(float(vals[1]))
+	#print lcls, cmb
+  Tlcls.append(lcls)
+  Tcmb.append(cmb)
+  i+=1
+
+
 if True:
  fig =pylab.figure(figsize=(16,12))
 
@@ -182,7 +202,7 @@ if True:
  pylab.xscale('log')
  ax3.plot([0.01,10000], [1,1], 'k-')
  plt.legend(loc="lower right")
- plt.xlim([0.1,10000])
+ plt.xlim([0.1,1100])
  ax3.grid(True)
  plt.errorbar(zCMASS, 1.044/rd_EHtoCAMB , yerr= 0.015)
  plt.errorbar(zLyaA, 0.973,  yerr= 0.055)
@@ -203,7 +223,7 @@ if True:
  plt.errorbar(zLyaA,  1.054,       yerr=0.032)
  plt.errorbar(zLyaC,  1.04,        yerr=0.034)
 
- plt.xlim([0.1,10000])
+ plt.xlim([0.1,1100])
  ax2.grid(True)
  #plt.errorbar(0.57, 1.0144, yerr=0.0098)
  #plt.errorbar(2.35, 0.973, yerr=0.05)
@@ -242,6 +262,17 @@ if True:
  plt.xlabel("$\Omega_{m,0}$")
  plt.ylabel("$\sigma_8$")
 
+
+ ax3 = fig.add_subplot(2,3,3)
+ for i in range(0, 6):
+	ax3.plot(Tlcls[i], Tcmb[i], color=colour(i+1), label = 'LCDM' if i==5 else None)
+ plt.xlim([10,2500])
+ plt.ylim([0,8000])
+ ax3.set_xscale('log')
+ plt.xlabel("$l$")
+ plt.ylabel("CMB spectrum")
+ plt.legend(loc="upper right")
+ ax3.grid(True)
 # ax5 = fig.add_subplot(3,3,8)
 # ax5.plot(nn0, nn2)
 # ax5.grid(True)

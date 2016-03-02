@@ -72,6 +72,7 @@
     B_quin = Ini_Read_Double_File(Ini,'B', 0.01d0)
     V0     = 1.0d0 ! Ini_Read_Double_File(Ini,'V0', 100.d0)
     sigma_model =Ini_Read_Double_File(Ini,'sigma', 1.22d0)
+    !ede_Om_file = Ini_Read_String_File(Ini,'test_Om_ede_del.dat')
     endif
 
     end subroutine DarkEnergy_ReadParams
@@ -84,7 +85,7 @@
     use ModelParams
     use ThermoData
     use LambdaGeneral
-    implicit none
+    implicit none                      !1000000
     integer, parameter :: NumPoints = 2000000, NumPointsEx=NumPoints+2
     !We actually calulate NumPointEx-NumPoints points after a=1 to get good interpolation at a=1
     real(dl) phi_a(NumPointsEx),phidot_a(NumPointsEx)
@@ -238,7 +239,7 @@ Voi=dum
     real(dl) om1,om2, initial_phi2, phi, deltaphi, om
     logical OK
     real dum, Voi, Voi2, Vo_ini, deltaVo
-    real(dl) effint, omint, p, rhofrac
+    real(dl) effint, omint, p, rhofrac, i2
     real(dl) initial_phidot, Ome_ede, rsss, rss
 
 !type(Backg) Ede
@@ -253,28 +254,29 @@ Voi=dum
 
     initial_phi  = 0
     !initial_phi  = 40 !  0.3*grhom/m**3
-    !initial_phi2 = -40 !-25 !   6*grhom/m**3
+    initial_phi2 = -40 !-25 !   6*grhom/m**3
 
     !           initial_phi  = 65 !  0.3*grhom/m**3
     !           initial_phi2 = 65 !   6*grhom/m**3
 
-    astart=1d-9
+    astart=1d-15!9
 
     
-    Vo_ini = -50.0 !0.001
-    Voi2 = 50.0 !100.0 
+    Vo_ini = -30.0 !0.001
+    Voi2 = 15.0 !100.0 
     !print *, 'Vo', Voi  
     !See if initial conditions are giving correct CP%omegav now
     atol=1d-5
     initial_phidot =  astart*Quint_phidot_start(initial_phi)
     om1= Quint_GetOmegaFromInitial(astart,initial_phi,initial_phidot, atol,10**Vo_ini)
-
+    print *, 'omega_1', om1
     if (.true.) then
         if (abs(om1-CP%omegav) > 1d-3) then
             !if not, do binary search in the interval
             OK=.false.
             !initial_phidot = astart*Quint_phidot_start(initial_phi2)
             om2= Quint_GetOmegaFromInitial(astart,initial_phi2,initial_phidot, atol, 10**Voi2)
+            print *, om, om2, Vo_ini, Voi2
             if (om1 > CP%omegav .or. om2 < CP%omegav) then
                 write (*,*) 'initial phi values must bracket required value.  '
                 write (*,*) 'om1, om2 = ', real(om1), real(om2)
@@ -302,7 +304,7 @@ Voi=dum
                     Vo_ini = (Voi2 + Vo_ini)/2
                     !initial_phi = (initial_phi2+initial_phi)/2
                     !if (FeedbackLevel > 0) write(*,*) 'phi_initial = ',initial_phi
-                    if (FeedbackLevel > 0) write(*,*) 'Vo_ini and ol =',10**Vo_ini, om    
+                    if (FeedbackLevel > 0) write(*,*) 'Vo_ini and ol =',Vo_ini, om    
                     exit
                 end if
 
@@ -328,6 +330,7 @@ Voi = 10**Vo_ini
     phidot_a(1)=y(2)/astart**2
     afrom=astart
     da=1._dl/(NumPoints-1)  !phi_a(NumPoints) is value now
+!print *, '222', 1._dl/(NumPoints-1) , exp(-4.0*(1.0-1.0/(NumPoints-1))) 
 !print *, 'daaaa', da  
     aVals(1)=astart
     !!Might need to be more careful about first point
@@ -335,11 +338,14 @@ Voi = 10**Vo_ini
     effint = 0 ; omint = 0
 dum = Voi
 
-     if( print_ede == .true.) open (50,file='test_Om_Quint_LCDM.dat')
+     if( print_ede == .true.) open (50,file= CP%ede_Om_file )
 !call nothing
 
     do i=1, NumPointsEx-1
         aend = da*i
+        !aend = 1d-5 + (i-1)*(1.0-1d-5)/(10000.d0-1) !da*i
+!        aend = exp(log(1.d-4)*(1.0-i*1.d0/(NumPoints-1)))  !da*i
+!print *,  exp(log(1.d-4)*(1.0-i*1.d0/(NumPoints-1))), da*i
         
         aVals(i+1)=aend
         call dverk(dum,NumEqs,EvolveBackground,afrom,y,aend,atol,ind,c,NumEqs,w)
@@ -356,7 +362,7 @@ dum = Voi
         Ome_ede = (0.5d0*phidot_a(i+1)**2 +aend**2*Voi*Vofphi(phi_a(i+1),0))/rhofrac 
 !rsss = rss(Ome_ede)
 !print *, 'wedwe', rssxx(Ome_ede)
-       write (50,'(2G)') log(aend), Ome_ede !,(grhoc+grhob)*aend**(-1)/rhofrac,(grhog+grhornomass)*aend**(-2)/rhofrac
+       if (mod(i,20) == 0)write (50,'(2G)') log(aend), Ome_ede !,(grhoc+grhob)*aend**(-1)/rhofrac,(grhog+grhornomass)*aend**(-2)/rhofrac
        !write (50,'(4G)') aend, Ome_ede, AngularDiameterDistance(1./aend - 1), Hofz(1./aend - 1)
        !write (50,'(4G)') log(aend), grhov*aend**2/rhofrac 
         !if (aend>0.000001)print *, aend, (0.5d0*phidot_a(i+1)**2 + aend**2*Voi*Vofphi(phi_a(i+1),0))**aend**0/rhofrac,(grhoc+grhob)*aend**(-1)/rhofrac

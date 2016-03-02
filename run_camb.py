@@ -36,7 +36,7 @@ with open('ede_values.dat','wa') as fede:
      line2 = "ede_Da_file = test_ede_Da_0%i.dat"%(i*100)
      line3 = "ede_Om_file = test_ede_Om_%i.dat"%(i*100)
      line4 = "output_root = test_%i"%(i*100)
-     line5 = "#scalar_amp(1)             = %fe-9"%(amp[i-2])
+     line5 = "scalar_amp(1)             = %fe-9"%(amp[i-2])
      commd = """
        sed '1i%s\n 2i%s\n 3i%s\n 4i%s\n 5i%s\n 6i%s\n 7i%s\n 8i%s\n 9i%s'  params_quint.ini > params_%ib.ini
        ./camb params_%ib.ini > out.txt

@@ -132,5 +132,35 @@ plt.savefig('Doran.pdf')
 plt.show()
 
 
+scals = ['test_ede_00_totCls.dat','test_ede_02_totCls.dat','test_ede_04_totCls.dat',
+	'test_ede_06_totCls.dat','test_ede_08_totCls.dat']
+
+clsT, llsT = [], []
+for scal in scals:
+    pnames=open(dir+scal).readlines()
+    lpnames = len(pnames)
+    lls, cls = [], []
+
+    for l in range(lpnames):
+        vals =pnames[l].split()[0:]
+        lls.append(float(vals[0]))
+	cls.append(float(vals[1]))
+    llsT.append(lls)
+    clsT.append(cls)
 
 
+fig =pylab.figure(figsize=(9,5))
+ax = fig.add_subplot(1,1,1)
+for i in range(5):
+   ax.plot(llsT[i], clsT[i], label='$\Omega_{ede}=%s$'%(ede[i]))
+#plt.errorbar(0.57, 1.0045, yerr=0.015)
+ax.grid(True)
+pylab.xscale('log')
+plt.legend(loc = 'upper right')
+plt.xlabel("$l$")
+plt.ylabel("$Cls$")
+plt.xlim([10,2000])
+
+fig.tight_layout()
+plt.savefig('Doran_cls2.pdf')
+plt.show()

@@ -10,7 +10,7 @@ we explored the [Doran & Robbers](http://arxiv.org/abs/astro-ph/0601544)
 parameterization as a candidate of EDE. Now, considering a more general
 picture we have incorporated an scalar field with potential
 
-![](Potential.jpg)
+![](figures/Potential.jpg)
 
 
 ### Python Code
@@ -26,8 +26,8 @@ The main module to bear in mind is `Quint_init_background`.
 
 Both files, py and F90, produce the same results at the background level:
 
-![](https://github.com/ja-vazquez/Early_DE/blob/master/Quint_1.jpg?raw=true =600x)
-![](https://github.com/ja-vazquez/Early_DE/blob/master/Quint_2.jpg?raw=true =600x) 
+![](https://github.com/ja-vazquez/Early_DE/blob/master/figures/Quint_1.jpg?raw=true =600x)
+![](https://github.com/ja-vazquez/Early_DE/blob/master/figures/Quint_2.jpg?raw=true =600x) 
 
 
 

@@ -4,7 +4,7 @@ import os
 lede = [0.00, 0.02, 0.04, 0.06, 0.08]
 amp = [2.215, 2.165, 2.118, 2.07, 2.025]
 theta_lcdm = 1.041887
-#1.036942
+
 
 i=1
 with open('ede_values.dat','wa') as fede:
@@ -32,14 +32,10 @@ with open('ede_values.dat','wa') as fede:
 
      with open('out.txt','r') as f:
         for line in f:
-	   #print line
 	   vals =line.split()[0:]
 	 
-	   #if 'r_s(zstar)' in line:
-	   #  rs = float(vals[2]) 
 	   if '100*theta' in line:
 	     theta = float(vals[2])
-	   #  break
 	   if 'r_s(zdrag)' in line:
 	     rs = float(vals[2])	
      	     break

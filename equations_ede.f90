@@ -99,7 +99,7 @@
     real(dl), intent(IN) :: a   
     grho= (grhok*a**(-2.0)+(grhoc+grhob)*a**(-3.0)+(grhog+grhornomass)*a**(-4.0))
     
-!     rho_res = (grhob+grhoc)*a**(-3.0)
+      rho_res = (grhob+grhoc)*a**(-3.0)
       rho_res = grho
     end function rho_res
 
@@ -145,8 +145,6 @@
     real(dl), intent(IN) :: a
       O_ede = top(a)/bot(a) + EDE(a)
 
-!JaV
-!if (a>1d-3) print *, a, O_ede
     end function O_ede
 
 

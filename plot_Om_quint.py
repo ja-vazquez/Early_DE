@@ -7,14 +7,14 @@ from scipy.interpolate import interp1d
 import matplotlib.cm as cm
 import os, sys, time
 
-dir = '/gpfs01/astro/workarea/jvazquez/cosmomc_Quint/camb/'
+dir = '/Users/josevazquezgonzalez/Desktop/work/Papers/Joint_Lya_BAO/Quint/Early_DE/data/ede/'
 
 params1 = {'backend': 'pdf',
                'axes.labelsize': 16,
                'text.fontsize': 18,
                'xtick.labelsize': 18,
                'ytick.labelsize': 18,
-               'legend.draw_frame': False,
+               #'legend.draw_frame': False,
                'legend.fontsize': 12,
                'lines.markersize': 6,
                'font.size': 18,

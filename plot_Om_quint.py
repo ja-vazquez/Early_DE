@@ -5,35 +5,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import matplotlib.cm as cm
-import os, sys, time
 import pandas as pd
+import Useful as Usf
 
 
-params1 = {'backend': 'pdf',
-               'axes.labelsize': 16,
-               'text.fontsize': 18,
-               'xtick.labelsize': 18,
-               'ytick.labelsize': 18,
-               #'legend.draw_frame': False,
-               'legend.fontsize': 12,
-               'lines.markersize': 6,
-               'font.size': 18,
-               'text.usetex': True}#
+params1 = Usf.setting_plot()
 pylab.rcParams.update(params1)
-
-
-
-def colour(x):
-    if x==1: return 'red'
-    if x==2: return 'blue'
-    if x==3: return 'green'
-    if x==4: return 'cyan'
-    if x==5: return 'magenta'
-    if x==6: return 'black'
-    if x==7: return 'green'
-    if x==8: return 'yellow'
-    if x==9: return 'purple'
-    if x>9: return 'black' # print("Increased colouring")
 
 zLOWZ  = 0.32
 zCMASS = 0.57
@@ -49,7 +26,6 @@ file_Cls    = '00_scalCls.dat'
 file_values = 'ede_values.dat'
 file_Oede   = 'test_ede_Om_'
 file_Da     = 'test_ede_Da_'
-
 
 
 rs_lcdm = 147.42
@@ -86,6 +62,7 @@ for j in range(5):
     dh.append((dist_vals['dh']/val['rs'][j])/(dist_lcd['dh']/rs_lcdm))
 
 
+
     #Cls files
 cls, ll = [], []
 ll = np.loadtxt(dir + 'test_200_scalCls.dat', usecols=[0])
@@ -105,14 +82,15 @@ if True:
  fig = pylab.figure(figsize=(16,12))
 
 
- ax3 = fig.add_subplot(2,3,1)
+ ax1 = fig.add_subplot(2,3,1)
  for i in range(5):
-     ax3.plot(dist_lcd['z'], da[i], color=colour(i+1),label = '$\Omega_{ede} = $%1.3f'%(Oede_cmb[i]))
+     ax1.plot(dist_lcd['z'], da[i], color = Usf.colour(i+1),
+              label = '$\Omega_{ede} = $%1.3f'%(Oede_cmb[i]))
+ ax1.grid(True)
  pylab.xscale('log')
- ax3.plot([0.01,10000], [1,1], 'k-')
- plt.legend(loc="lower right")
  plt.xlim([0.1,1100])
- ax3.grid(True)
+ plt.legend(loc="lower right")
+ ax1.plot([0.01,10000], [1,1], 'k-')
  plt.errorbar(zCMASS, 1.044/rd_EHtoCAMB , yerr= 0.015)
  plt.errorbar(zLyaA, 0.973,  yerr= 0.055)
  plt.errorbar(zLyaC, 0.93,   yerr= 0.036)
@@ -120,28 +98,29 @@ if True:
 
  ax2 = fig.add_subplot(2,3,2)
  for i in range(5):
-     ax2.plot(dist_lcd['z'], dh[i], color=colour(i+1))
+     ax2.plot(dist_lcd['z'], dh[i], color=Usf.colour(i+1))
  ax2.plot([0.01,10000], [1,1], 'k-')
+ ax2.grid(True)
  pylab.xscale('log')
+ plt.xlabel("$z$")
+ plt.xlim([0.1,1100])
  plt.errorbar(zCMASS, 0.968,     yerr=0.033)
  plt.errorbar(zLyaA,  1.054,       yerr=0.032)
  plt.errorbar(zLyaC,  1.04,        yerr=0.034)
- plt.xlim([0.1,1100])
- ax2.grid(True)
- plt.xlabel("$z$")
  plt.ylabel("$[D_{h,ede}/r_{s,ede}]/[D_{h,LCDM}/r_{s,LCDM}]$")
 
 
  ax3 = fig.add_subplot(2,3,3)
  for i in range(6):
-    ax3.plot(ll, cls[i], color=colour(i+1), label = 'LCDM' if i==5 else None)
+    ax3.plot(ll, cls[i], color=Usf.colour(i+1), label = 'LCDM' if i==5 else None)
  plt.xlim([10,2500])
  plt.ylim([0,8000])
- ax3.set_xscale('log')
+ ax3.grid(True)
  plt.xlabel("$l$")
+ ax3.set_xscale('log')
  plt.ylabel("CMB spectrum")
  plt.legend(loc="upper right")
- ax3.grid(True)
+
 
 
  ax4 = fig.add_subplot(2,3,4)
@@ -159,8 +138,8 @@ if True:
  ax5 = fig.add_subplot(2,3,5)
  sc = ax5.scatter(Oede_cmb, val['s8'], c=val['Om'], s =40, cmap=cm.Blues, label = 'Om0')
  cbar = plt.colorbar(sc)
- cbar.set_label('$\Omega_{m,0}$')
  ax5.grid(True)
+ cbar.set_label('$\Omega_{m,0}$')
  plt.axis([0.01, 0.09, 0.82, 0.9])
  plt.xticks(np.arange(0.01, 0.09, 0.02))
  plt.xlabel("$ \Omega_{ede}(z_{drag})$")
@@ -171,8 +150,8 @@ if True:
  ax6 = fig.add_subplot(2,3,6)
  sc = ax6.scatter(val['Om'], val['s8'], c=val['H0'], s =40, cmap=cm.Blues, label = 'h0')
  cbar = plt.colorbar(sc)
- cbar.set_label('$H_0$')
  ax6.grid(True)
+ cbar.set_label('$H_0$')
  plt.xticks(np.arange(0.2, 0.3, 0.02))
  plt.xlabel("$\Omega_{m,0}$")
  plt.ylabel("$\sigma_8$")

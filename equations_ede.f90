@@ -310,8 +310,14 @@
     !This is only called once per model, and is a good point to do any extra initialization.
     !It is called before first call to dtauda, but after
     !massive neutrinos are initialized and after GetOmegak
+    integer i
+    real(dl) aend
     is_cosmological_constant = .not. use_tabulated_w .and. w_lam==-1_dl .and. wa_ppf==0._dl .and. (.not. use_EDE)
 
+    do i=0, 1000
+     aend = -20 + i*((20.)/1000)
+     print *, aend, w_de(exp(aend))
+    end do
     end  subroutine init_background
 
 

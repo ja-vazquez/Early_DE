@@ -362,7 +362,9 @@ dum = Voi
         Ome_ede = (0.5d0*phidot_a(i+1)**2 +aend**2*Voi*Vofphi(phi_a(i+1),0))/rhofrac 
 !rsss = rss(Ome_ede)
 !print *, 'wedwe', rssxx(Ome_ede)
-       if (mod(i,20) == 0)write (50,'(2G)') log(aend), Ome_ede !,(grhoc+grhob)*aend**(-1)/rhofrac,(grhog+grhornomass)*aend**(-2)/rhofrac
+       if (mod(i,20) == 0)write (50,'(3G)') log(aend), Ome_ede,real((0.5d0*phidot_a(i+1)**2 - Vofphi(phi_a(i+1),0))/(0.5d0*phidot_a(i+1)**2 + Vofphi(phi_a(i+1),0)))
+
+ !,(grhoc+grhob)*aend**(-1)/rhofrac,(grhog+grhornomass)*aend**(-2)/rhofrac
        !write (50,'(4G)') aend, Ome_ede, AngularDiameterDistance(1./aend - 1), Hofz(1./aend - 1)
        !write (50,'(4G)') log(aend), grhov*aend**2/rhofrac 
         !if (aend>0.000001)print *, aend, (0.5d0*phidot_a(i+1)**2 + aend**2*Voi*Vofphi(phi_a(i+1),0))**aend**0/rhofrac,(grhoc+grhob)*aend**(-1)/rhofrac

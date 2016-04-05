@@ -31,6 +31,7 @@
     real(dl) :: cs2_lam = 1_dl
     !cs2_lam now is ce^2
 
+    logical :: print_ede = .true.
     logical :: use_tabulated_w = .false.
     logical :: use_EDE = .true.
     real(dl) :: wa_ppf = 0._dl
@@ -312,11 +313,15 @@
     !massive neutrinos are initialized and after GetOmegak
     integer i
     real(dl) aend
+    CHARACTER(LEN=80)  :: FORMAT
+!    FORMAT = "(3(F9.5, TR9))"
     is_cosmological_constant = .not. use_tabulated_w .and. w_lam==-1_dl .and. wa_ppf==0._dl .and. (.not. use_EDE)
+     
+   if( print_ede == .true.) open (50,file= CP%ede_Om_file )
 
     do i=0, 1000
      aend = -20 + i*((20.)/1000)
-     print *, aend, w_de(exp(aend))
+     write (50, "(3(E15.7,TR7))")  aend, O_ede(exp(aend)), w_de(exp(aend))
     end do
     end  subroutine init_background
 

@@ -6,7 +6,7 @@ lede = [ (3.5, 10.5) ,(4.5, 9), (5.5,7.5), (6.5,6.5), (7.5,5.5)]
 #amp = [1.98, 1.93, 1.86, 1.78, 1.66] 
 amp = [2.1]
 
-theta_lcdm = 1.039706
+theta_lcdm = 1.039973
 
 i=1
 with open('test_quint_values.dat','wa') as fede:

@@ -86,10 +86,10 @@
     use ThermoData
     use LambdaGeneral
     implicit none                      !1000000
-    integer, parameter :: NumPoints = 2000000, NumPointsEx=NumPoints+2
+    integer, parameter :: NumPoints = 1000000, NumPointsEx=NumPoints+2
     !We actually calulate NumPointEx-NumPoints points after a=1 to get good interpolation at a=1
-    real(dl) phi_a(NumPointsEx),phidot_a(NumPointsEx)
-    real(dl) ddphi_a(NumPointsEx),ddphidot_a(NumPointsEx)
+    real(dl) phi_a(NumPointsEx),phidot_a(NumPointsEx), aVals(NumPointsEx)
+    real(dl) ddphi_a(NumPointsEx),ddphidot_a(NumPointsEx), y_2(NumPointsEx), y_3(NumPointsEx)
 
     real(dl) adot, Voif
     real(dl) :: initial_phi, da
@@ -143,11 +143,11 @@ norm = 1
     fact2= 2*(Co*phi-B_quin)
      
     if (deriv==0) then
-        Vofphi=  norm*V0*exp(-sigma_model*(phi-0.9*B_quin))*fact1
+        Vofphi=  norm*V0*exp(-sigma_model*(phi-0.0*B_quin))*fact1
     else if (deriv ==1) then
-        Vofphi= norm*V0*exp(-sigma_model*(phi-0.9*B_quin))*(fact2 - sigma_model*fact1) 
+        Vofphi= norm*V0*exp(-sigma_model*(phi-0.0*B_quin))*(fact2 - sigma_model*fact1) 
     else if (deriv ==2) then
-        Vofphi= norm*V0*exp(-sigma_model*(phi-0.9*B_quin))*(-sigma_model*(fact2 - sigma_model*fact1) -sigma_model*fact2+ 2.0*Co)  
+        Vofphi= norm*V0*exp(-sigma_model*(phi-0.0*B_quin))*(-sigma_model*(fact2 - sigma_model*fact1) -sigma_model*fact2+ 2.0*Co)  
     else
         stop 'Invalid deriv in Vofphi'
     end if
@@ -224,7 +224,7 @@ Voi=dum
     function Quint_phidot_start(phi)
     real(dl) :: phi, Quint_phidot_start
     !!!
-    Quint_phidot_start = 0.0 ! sqrt(4*Vofphi(phi,0))
+    Quint_phidot_start = 0.0 !sqrt(4*Vofphi(phi,0))
     end function Quint_phidot_start
 
 
@@ -235,7 +235,7 @@ Voi=dum
     integer, parameter ::  NumEqs=2
     real(dl) c(24),w(NumEqs,9), y(NumEqs),atol
     integer ind, i, iter
-    real(dl) aVals(NumPointsEx), splZero
+    real(dl) splZero !aVals(NumPointsEx), splZero
     real(dl) om1,om2, initial_phi2, phi, deltaphi, om
     logical OK
     real dum, Voi, Voi2, Vo_ini, deltaVo
@@ -259,11 +259,11 @@ Voi=dum
     !           initial_phi  = 65 !  0.3*grhom/m**3
     !           initial_phi2 = 65 !   6*grhom/m**3
 
-    astart=1d-15!9
+    astart=1d-15
 
     
-    Vo_ini = -30.0 !0.001
-    Voi2 = 15.0 !100.0 
+    Vo_ini = -10.0 !0.001
+    Voi2 = 35.0 !100.0 
     !print *, 'Vo', Voi  
     !See if initial conditions are giving correct CP%omegav now
     atol=1d-5
@@ -329,7 +329,11 @@ Voi = 10**Vo_ini
     phi_a(1)=y(1)
     phidot_a(1)=y(2)/astart**2
     afrom=astart
-    da=1._dl/(NumPoints-1)  !phi_a(NumPoints) is value now
+!    da=1._dl/(NumPoints-1)  !phi_a(NumPoints) is value now
+    da =   (log(1.0) - log(astart))/(NumPoints-1)  !(log(1.)-log(0.0001))/(NumPointsEx-1)
+
+
+
 !print *, '222', 1._dl/(NumPoints-1) , exp(-4.0*(1.0-1.0/(NumPoints-1))) 
 !print *, 'daaaa', da  
     aVals(1)=astart
@@ -342,8 +346,11 @@ dum = Voi
 !call nothing
 
     do i=1, NumPointsEx-1
-        aend = da*i
-        !aend = 1d-5 + (i-1)*(1.0-1d-5)/(10000.d0-1) !da*i
+        !aend = da*i
+        !aend = 1.d-15 + da*i 
+        aend = exp(i*da + log(astart))
+
+!aend = 1d-5 + (i-1)*(1.0-1d-5)/(10000.d0-1) !da*i
 !        aend = exp(log(1.d-4)*(1.0-i*1.d0/(NumPoints-1)))  !da*i
 !print *,  exp(log(1.d-4)*(1.0-i*1.d0/(NumPoints-1))), da*i
         
@@ -362,7 +369,9 @@ dum = Voi
         Ome_ede = (0.5d0*phidot_a(i+1)**2 +aend**2*Voi*Vofphi(phi_a(i+1),0))/rhofrac 
 !rsss = rss(Ome_ede)
 !print *, 'wedwe', rssxx(Ome_ede)
-       if (mod(i,20) == 0)write (50,'(2G)') log(aend), Ome_ede !,(grhoc+grhob)*aend**(-1)/rhofrac,(grhog+grhornomass)*aend**(-2)/rhofrac
+       if (mod(i,20) == 0)write (50,'(4G)') log(aend), Ome_ede,real((0.5d0*phidot_a(i+1)**2 - aend**2*Voi*Vofphi(phi_a(i+1),0))/(0.5d0*phidot_a(i+1)**2 + aend**2*Voi*Vofphi(phi_a(i+1),0))), phi_a(i)
+
+ !,(grhoc+grhob)*aend**(-1)/rhofrac,(grhog+grhornomass)*aend**(-2)/rhofrac
        !write (50,'(4G)') aend, Ome_ede, AngularDiameterDistance(1./aend - 1), Hofz(1./aend - 1)
        !write (50,'(4G)') log(aend), grhov*aend**2/rhofrac 
         !if (aend>0.000001)print *, aend, (0.5d0*phidot_a(i+1)**2 + aend**2*Voi*Vofphi(phi_a(i+1),0))**aend**0/rhofrac,(grhoc+grhob)*aend**(-1)/rhofrac
@@ -408,24 +417,59 @@ Voif = Voi
     !Do interpolation for phi and phidot at a
     real(dl) a, aphi, aphidot, Voip
     real(dl) a0,b0,ho2o6,a03,b03
+    logical old_code
 
     integer ix
-!print *,'Voi3', Voif
+
 Voip =Voif
-!print *,'Voi111', Voif
-    ix = int(a/da)+1
-    a0 = (ix*da -a)/da
-    b0 = (a-(ix-1)*da)/da
-    ho2o6 = da**2/6._dl
-!print *,'Voi222', Voif
-    a03=(a0**3-a0)
-    b03=(b0**3-b0)
-!print *,'Voi333', da, a0 , b0, a03 !, ddphi_a(ix), ddphi_a(ix+1)
-    aphi=a0*phi_a(ix)+b0*phi_a(ix+1)+(a03*ddphi_a(ix)+b03*ddphi_a(ix+1))*ho2o6
-!print *,'Vo444', Voif
-    aphidot=a0*phidot_a(ix)+b0*phidot_a(ix+1)+(a03*ddphidot_a(ix)+b03*ddphidot_a(ix+1))*ho2o6
-!print *,'Voi1113', Voif
+
+    old_code = .false.
+  
+    if ( old_code) then  
+      ix = int(a/da)+1
+
+      a0 = (ix*da -a)/da
+      b0 = (a-(ix-1)*da)/da
+      ho2o6 = da**2/6._dl
+      a03=(a0**3-a0)
+      b03=(b0**3-b0)
+      aphi=a0*phi_a(ix)+b0*phi_a(ix+1)+(a03*ddphi_a(ix)+b03*ddphi_a(ix+1))*ho2o6
+      aphidot=a0*phidot_a(ix)+b0*phidot_a(ix+1)+(a03*ddphidot_a(ix)+b03*ddphidot_a(ix+1))*ho2o6
+
+    else
+
+      call cubicsplint(aVals, phi_a, y_2, NumPointsEx, a, aphi)
+      call cubicsplint(aVals, phidot_a, y_3, NumPointsEx, a, aphidot)
+    end if
+
     end subroutine Quint_ValsAta
+
+
+         subroutine cubicsplint(xa,ya,y2a,n,x,y)
+         use Precision
+        integer n
+        real(dl) x,y,xa(n),y2a(n),ya(n)
+        integer k,khi,klo
+        real(dl) a,b,h
+        klo=1
+        khi=n
+1       if (khi-klo.gt.1) then
+          k=(khi+klo)/2
+          if(xa(k).gt.x)then
+            khi=k
+          else
+            klo=k
+          endif
+        goto 1
+        endif
+        h=xa(khi)-xa(klo)
+        if (h.eq.0.) pause 'bad xa input in splint'
+        a=(xa(khi)-x)/h
+        b=(x-xa(klo))/h
+        y=a*ya(klo)+b*ya(khi)+&
+       ((a**3-a)*y2a(klo)+(b**3-b)*y2a(khi))*(h**2)/6.d0
+        end subroutine cubicsplint
+
 
     end module Quint
 

@@ -2,17 +2,19 @@
 import os
 
 lede = [ (3.5, 10.5) ,(4.5, 9), (5.5,7.5), (6.5,6.5), (7.5,5.5)]
-amp = [1.98, 1.93, 1.86, 1.78, 1.66] 
+
+#amp = [1.98, 1.93, 1.86, 1.78, 1.66] 
+amp = [2.1]
 
 theta_lcdm = 1.039706
 
 i=1
-with open('ede_values.dat','wa') as fede:
+with open('test_quint_values.dat','wa') as fede:
  for b, sig in lede:
 
   count       = 0
   tol, Ttol   = 100, 2e-4
-  lowr, highr = 65, 85
+  lowr, highr = 65, 90
 
   i+=1
   while(abs(tol) > Ttol):
@@ -22,16 +24,16 @@ with open('ede_values.dat','wa') as fede:
      line01= "#ombh2          = %f"%(0.141559 - 0.2617605*mid*mid/10000.)
      linea = "B             = %f"%(b)
      lineb = "sigma          = %f"%(sig)
-     line2 = "ede_Da_file = test_ede_Da_0%i.dat"%(i*100)
-     line3 = "ede_Om_file = test_ede_Om_%i.dat"%(i*100)
-     line4 = "output_root = test_%i"%(i*100)
-     line5 = "scalar_amp(1)             = %fe-9"%(amp[i-2])
+     line2 = "ede_Da_file = test_quint_Da_%i.dat"%(i)
+     line3 = "ede_Om_file = test_quint_Om_%i.dat"%(i)
+     line4 = "output_root = test_quint_%i"%(i)
+     line5 = "scalar_amp(1)             = %fe-9"%(amp[0]) #i-2])
      commd = """
-       sed '1i%s\n 2i%s\n 3i%s\n 4i%s\n 5i%s\n 6i%s\n 7i%s\n 8i%s\n 9i%s'  params_quint.ini > params_%ib.ini
-       ./camb params_%ib.ini > out.txt
-     """%(line, line0, line01, linea, lineb,line2, line3, line4, line5, i*100, i*100)
+       sed '1i%s\n 2i%s\n 3i%s\n 4i%s\n 5i%s\n 6i%s\n 7i%s\n 8i%s\n 9i%s'  params_quint.ini > params_%i.ini
+       ./camb params_%i.ini > out.txt
+     """%(line, line0, line01, linea, lineb,line2, line3, line4, line5, i, i)
      os.system(commd)
-     os.system("cp out.txt out_%ib.tx"%(i*100))
+     os.system("cp out.txt out_%i.tx"%(i))
      with open('out.txt','r') as f:
        for line in f:
           vals =line.split()[0:]

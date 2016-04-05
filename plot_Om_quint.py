@@ -22,11 +22,17 @@ rd_EHtoCAMB =153.19/149.281
 
 
 dir = '/Users/josevazquezgonzalez/Desktop/work/Papers/Joint_Lya_BAO/Quint/Early_DE/data/quint/'
-file_Cls    = '00_scalCls.dat'
-file_values = 'ede_values.dat'
-file_Oede   = 'test_ede_Om_'
-file_Da     = 'test_ede_Da_'
+root        = 'test_quint_fix_'
+file_Cls    = '_scalCls.dat'
+file_Mpk    = '_matterpower.dat'
 
+file_values = root + 'values.dat'
+file_Oede   = root + 'Om_'
+file_Da     = root + 'Da_'
+
+file_cls_lcdm   = 'test_lcdm_scalCls.dat'
+file_mpk_lcdm   = 'test_lcdm_matterpower.dat'
+file_da_lcdm    = 'test_Da_lcdm.dat'
 
 rs_lcdm = 147.42
 z_cmb = np.log(1./(1+1060.0))
@@ -44,7 +50,7 @@ val = pd.read_table(dir + file_values, names =['B', 'lambda', 'H0', 'rs', 's8', 
     #Oede file
 one_fact, Oede_cmb = [], []
 for i in range(5):
-    Oede_values = pd.read_fwf(dir + file_Oede + '%i00.dat'%(i+2), names = ['loga', 'Oede'])
+    Oede_values = pd.read_fwf(dir + file_Oede + '%i.dat'%(i+2), names = ['loga', 'Oede'])
     interp_Oede = interp1d(Oede_values['loga'], Oede_values['Oede'])
 
     Oede_cmb.append(interp_Oede(z_cmb))
@@ -54,9 +60,9 @@ for i in range(5):
 
     #Da/Dh files
 da, dh = [], []
-dist_lcd   = pd.read_fwf(dir + 'test_ede_Da_lcdm.dat', names = ['z', 'da', 'dh'])
+dist_lcd   = pd.read_fwf(dir + file_da_lcdm, names = ['z', 'da', 'dh'])
 for j in range(5):
-    dist_vals  = pd.read_fwf(dir + file_Da + '0%i00.dat'%(j+2), names = ['z', 'da', 'dh'])
+    dist_vals  = pd.read_fwf(dir + file_Da + '%i.dat'%(j+2), names = ['z', 'da', 'dh'])
 
     da.append((dist_vals['da']/val['rs'][j])/(dist_lcd['da']/rs_lcdm))
     dh.append((dist_vals['dh']/val['rs'][j])/(dist_lcd['dh']/rs_lcdm))
@@ -65,12 +71,25 @@ for j in range(5):
 
     #Cls files
 cls, ll = [], []
-ll = np.loadtxt(dir + 'test_200_scalCls.dat', usecols=[0])
+ll = np.loadtxt(dir + file_cls_lcdm, usecols=[0])
+cls_lcdm = np.loadtxt(dir + file_cls_lcdm, usecols=[1])
 for k in range(5):
-    cls_vals = np.loadtxt(dir + 'test_%i'%(k+2) + file_Cls, usecols=[1])
-    cls.append(cls_vals)
-cls_lcdm = np.loadtxt(dir + 'test_lcdm_scalCls.dat', usecols=[1])
-cls.append(cls_lcdm)
+    cls_vals = np.loadtxt(dir + root + '%i'%(k+2) + file_Cls, usecols=[1])
+    cls.append(cls_vals/cls_lcdm)
+
+
+
+    #Mpk files
+mpk, kk= [], []
+kk_lcdm = np.loadtxt(dir + file_mpk_lcdm, usecols=[0])
+mpk_lcdm = np.loadtxt(dir + file_mpk_lcdm, usecols=[1])
+
+for k in range(5):
+    kk_vals = np.loadtxt(dir + root + '%i'%(k+2) + file_Mpk, usecols=[0])
+    mpk_vals = np.loadtxt(dir + root + '%i'%(k+2) + file_Mpk, usecols=[1])
+
+    mpk_interp  = interp1d(kk_vals, mpk_vals)
+    mpk.append(mpk_interp(kk_lcdm)/mpk_lcdm)
 
 
 
@@ -79,24 +98,60 @@ cls.append(cls_lcdm)
 
 if True:
 
- fig = pylab.figure(figsize=(16,12))
+ fig = pylab.figure(figsize=(14,10))
 
 
- ax1 = fig.add_subplot(2,3,1)
+ ax4 = fig.add_subplot(3,3,1)
+ sc = ax4.scatter(Oede_cmb, one_fact, c=val['H0'], s =40, cmap=cm.Blues, label = 'H0')
+ cbar = plt.colorbar(sc)
+ cbar.set_label('$H_0$', rotation=90)
+ ax4.grid(True)
+ plt.axis([0.01, 0.09, 0, 0.01])
+ plt.xticks(np.arange(0.01, 0.09, 0.02))
+ plt.xlabel("$ \Omega_{ede}(z_{drag})$")
+ plt.ylabel("$1 - r_{s,ede}/\sqrt{1-\Omega_{ede}}/r_{s,\Lambda}$")
+
+
+
+ ax5 = fig.add_subplot(3,3,2)
+ sc = ax5.scatter(Oede_cmb, val['s8'], c=val['Om'], s =40, cmap=cm.Blues, label = 'Om0')
+ cbar = plt.colorbar(sc)
+ ax5.grid(True)
+ cbar.set_label('$\Omega_{m,0}$')
+ #plt.axis([0.01, 0.09, 0.8, 0.88])
+ plt.xticks(np.arange(0.01, 0.091, 0.02))
+ plt.xlabel("$ \Omega_{ede}(z_{drag})$")
+ plt.ylabel("$\sigma_8$")
+
+
+
+ ax6 = fig.add_subplot(3,3,3)
+ sc = ax6.scatter(val['Om'], val['s8'], c=val['H0'], s =40, cmap=cm.Blues, label = 'h0')
+ cbar = plt.colorbar(sc)
+ ax6.grid(True)
+ cbar.set_label('$H_0$')
+ plt.xticks(np.arange(0.2, 0.3, 0.04))
+ plt.xlabel("$\Omega_{m,0}$")
+ plt.ylabel("$\sigma_8$")
+
+
+ ax1 = fig.add_subplot(3,3,4)
  for i in range(5):
      ax1.plot(dist_lcd['z'], da[i], color = Usf.colour(i+1),
               label = '$\Omega_{ede} = $%1.3f'%(Oede_cmb[i]))
  ax1.grid(True)
  pylab.xscale('log')
+ plt.xlabel("$z$")
  plt.xlim([0.1,1100])
  plt.legend(loc="lower right")
  ax1.plot([0.01,10000], [1,1], 'k-')
+ plt.ylabel("$[D_{a,ede}/r_{s,ede}]/[D_{a,\Lambda}/r_{s,\Lambda}]$")
  plt.errorbar(zCMASS, 1.044/rd_EHtoCAMB , yerr= 0.015)
  plt.errorbar(zLyaA, 0.973,  yerr= 0.055)
  plt.errorbar(zLyaC, 0.93,   yerr= 0.036)
 
 
- ax2 = fig.add_subplot(2,3,2)
+ ax2 = fig.add_subplot(3,3,5)
  for i in range(5):
      ax2.plot(dist_lcd['z'], dh[i], color=Usf.colour(i+1))
  ax2.plot([0.01,10000], [1,1], 'k-')
@@ -107,54 +162,32 @@ if True:
  plt.errorbar(zCMASS, 0.968,     yerr=0.033)
  plt.errorbar(zLyaA,  1.054,       yerr=0.032)
  plt.errorbar(zLyaC,  1.04,        yerr=0.034)
- plt.ylabel("$[D_{h,ede}/r_{s,ede}]/[D_{h,LCDM}/r_{s,LCDM}]$")
+ plt.ylabel("$[D_{h,ede}/r_{s,ede}]/[D_{h,\Lambda}/r_{s,\Lambda}]$")
 
 
- ax3 = fig.add_subplot(2,3,3)
- for i in range(6):
+ ax3 = fig.add_subplot(3,3,7)
+ for i in range(5):
     ax3.plot(ll, cls[i], color=Usf.colour(i+1), label = 'LCDM' if i==5 else None)
  plt.xlim([10,2500])
- plt.ylim([0,8000])
+ plt.ylim([0.6,1.5])
  ax3.grid(True)
  plt.xlabel("$l$")
  ax3.set_xscale('log')
- plt.ylabel("CMB spectrum")
+ plt.ylabel("$CMB_{ede}/CMB_{\Lambda}$")
  plt.legend(loc="upper right")
 
 
-
- ax4 = fig.add_subplot(2,3,4)
- sc = ax4.scatter(Oede_cmb, one_fact, c=val['H0'], s =40, cmap=cm.Blues, label = 'H0')
- cbar = plt.colorbar(sc)
- cbar.set_label('$H_0$', rotation=90)
- ax4.grid(True)
- plt.axis([0.01, 0.09, 0, 0.01])
- plt.xticks(np.arange(0.01, 0.09, 0.02))
- plt.xlabel("$ \Omega_{ede}(z_{drag})$")
- plt.ylabel("$1 - r_{s,ede}/\sqrt{1-\Omega_{ede}}/r_{s,LCDM}$")
-
+ ax7 = fig.add_subplot(3,3,8)
+ for i in range(5):
+    ax7.plot(kk_lcdm, mpk[i], color=Usf.colour(i+1)) #, label = 'LCDM' if i==5 else None)
+ ax7.grid(True)
+ plt.xlim([0.001,1])
+ plt.xlabel("$k$")
+ ax7.set_xscale('log')
+ plt.ylabel("$Mpk_{ede}/Mpk_{\Lambda}$")
+ plt.legend(loc="upper right")
 
 
- ax5 = fig.add_subplot(2,3,5)
- sc = ax5.scatter(Oede_cmb, val['s8'], c=val['Om'], s =40, cmap=cm.Blues, label = 'Om0')
- cbar = plt.colorbar(sc)
- ax5.grid(True)
- cbar.set_label('$\Omega_{m,0}$')
- plt.axis([0.01, 0.09, 0.82, 0.9])
- plt.xticks(np.arange(0.01, 0.09, 0.02))
- plt.xlabel("$ \Omega_{ede}(z_{drag})$")
- plt.ylabel("$\sigma_8$")
-
-
-
- ax6 = fig.add_subplot(2,3,6)
- sc = ax6.scatter(val['Om'], val['s8'], c=val['H0'], s =40, cmap=cm.Blues, label = 'h0')
- cbar = plt.colorbar(sc)
- ax6.grid(True)
- cbar.set_label('$H_0$')
- plt.xticks(np.arange(0.2, 0.3, 0.02))
- plt.xlabel("$\Omega_{m,0}$")
- plt.ylabel("$\sigma_8$")
 
 
  plt.tight_layout()

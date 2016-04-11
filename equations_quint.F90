@@ -216,15 +216,18 @@ Voi=dum
 
 ! print *,'Voi',  Voi
     Quint_GetOmegaFromInitial=(0.5d0*y(2)**2 + Voi*Vofphi(y(1),0))/(3*adot**2)
+!    Quint_GetOmegaFromInitial=(0.5d0*phidot**2 + ast**2*Voi*Vofphi(y(1),0))/(3*(adot/ast)**2)
+!print *,  Quint_GetOmegaFromInitial, dum
+!(0.5d0*phidot_a(i+1)**2 +aend**2*Voi*Vofphi(phi_a(i+1),0))/rhofrac
 
 !print *,'adot', adot
     end function Quint_GetOmegaFromInitial
 
 
-    function Quint_phidot_start(phi)
-    real(dl) :: phi, Quint_phidot_start
+    function Quint_phidot_start(phi, V_in)
+    real(dl) :: phi, Quint_phidot_start, V_in
     !!!
-    Quint_phidot_start = 0.0 !sqrt(4*Vofphi(phi,0))
+    Quint_phidot_start = sqrt(4*V_in*Vofphi(phi,0))
     end function Quint_phidot_start
 
 
@@ -237,11 +240,13 @@ Voi=dum
     integer ind, i, iter
     real(dl) splZero !aVals(NumPointsEx), splZero
     real(dl) om1,om2, initial_phi2, phi, deltaphi, om
-    logical OK
-    real dum, Voi, Voi2, Vo_ini, deltaVo
+    logical OK, old_code
+    real dum, Voi, Voi2, Vo_ini, deltaVo, ret
     real(dl) effint, omint, p, rhofrac, i2
-    real(dl) initial_phidot, Ome_ede, rsss, rss
+    real(dl) initial_phidot, initial_phidot2, Ome_ede, rsss, rss
 
+    real ::  phi_ini_found
+ 
 !type(Backg) Ede
     !Make interpolation table, etc,
     !At this point massive neutrinos have been initialized
@@ -252,31 +257,48 @@ Voi=dum
     !Assume that higher initial phi gives higher CP%omegav today
     !Can fix initial_phi to correct value
 
-    initial_phi  = 0
+    initial_phi  = 0.05  !0.05
     !initial_phi  = 40 !  0.3*grhom/m**3
-    initial_phi2 = -40 !-25 !   6*grhom/m**3
+    !initial_phi2 = -40 !-25 !   6*grhom/m**3
 
     !           initial_phi  = 65 !  0.3*grhom/m**3
     !           initial_phi2 = 65 !   6*grhom/m**3
 
-    astart=1d-15
+    astart=exp(-20.)!1d-15
+!    print *, ()**(0.25)
+
+!    print *, 'funtion', find_ini_phi(initial_phi, astart, 10.d0**(20.))    
+!    call bisect(ga,gaa,gb,20)
+
 
     
-    Vo_ini = -10.0 !0.001
-    Voi2 = 35.0 !100.0 
+    Vo_ini = 0. !0.001
+    Voi2 = 50 !100.0 
     !print *, 'Vo', Voi  
     !See if initial conditions are giving correct CP%omegav now
-    atol=1d-5
-    initial_phidot =  astart*Quint_phidot_start(initial_phi)
-    om1= Quint_GetOmegaFromInitial(astart,initial_phi,initial_phidot, atol,10**Vo_ini)
+    atol=1d-3 !5
+
+    initial_phidot =  astart*Quint_phidot_start(initial_phi, 1.d0*exp(Vo_ini))
+    initial_phidot2 =  astart*Quint_phidot_start(initial_phi, 1.d0*exp(Voi2))
+
+
+
+old_code = .true.
+!call find_ini_v0(astart,initial_phi,initial_phidot, ret)
+!Vo_ini =ret 
+!print *, '-----***',ret
+
+
+if (old_code) then
+     om1= Quint_GetOmegaFromInitial(astart,initial_phi,initial_phidot, atol, exp(Vo_ini))
     print *, 'omega_1', om1
     if (.true.) then
         if (abs(om1-CP%omegav) > 1d-3) then
             !if not, do binary search in the interval
             OK=.false.
             !initial_phidot = astart*Quint_phidot_start(initial_phi2)
-            om2= Quint_GetOmegaFromInitial(astart,initial_phi2,initial_phidot, atol, 10**Voi2)
-            print *, om, om2, Vo_ini, Voi2
+            om2= Quint_GetOmegaFromInitial(astart,initial_phi,initial_phidot2, atol, exp(Voi2))
+            print *, 'Om2', om2, Vo_ini, Voi2
             if (om1 > CP%omegav .or. om2 < CP%omegav) then
                 write (*,*) 'initial phi values must bracket required value.  '
                 write (*,*) 'om1, om2 = ', real(om1), real(om2)
@@ -288,7 +310,7 @@ Voi=dum
                 !deltaphi=initial_phi2-initial_phi
                 !phi =initial_phi + deltaphi/2
                 !initial_phidot =  astart*Quint_phidot_start(phi)
-                om = Quint_GetOmegaFromInitial(astart,phi,initial_phidot,atol,10**Voi)
+                om = Quint_GetOmegaFromInitial(astart,phi,initial_phidot,atol,exp(Voi))
 !print *,'Ome',om, CP%omegav,Voi
                 if (om < CP%omegav) then
                     om1=om
@@ -304,7 +326,7 @@ Voi=dum
                     Vo_ini = (Voi2 + Vo_ini)/2
                     !initial_phi = (initial_phi2+initial_phi)/2
                     !if (FeedbackLevel > 0) write(*,*) 'phi_initial = ',initial_phi
-                    if (FeedbackLevel > 0) write(*,*) 'Vo_ini and ol =',Vo_ini, om    
+                    if (FeedbackLevel > 0) write(*,*) '** Vo_ini and ol =',Vo_ini, om    
                     exit
                 end if
 
@@ -312,18 +334,26 @@ Voi=dum
         if (.not. OK) stop 'Search for good intial conditions did not converge' !this shouldn't happen
         end if !Find initial
     end if
+end if
 print *, Vo_ini
-Voi = 10**Vo_ini
+Voi = exp(Vo_ini)
 
+!print *, 'funtion', 
+call find_ini_phi(astart, Voi, phi_ini_found)
+print *, '-----',  phi_ini_found
+!call bisect(ga,gaa,gb,20)
+initial_phi = phi_ini_found
+ 
+ 
     atol=1d-5
     ind=1
     !y(1)=astart/adotrad
 
 !print *,'params initial',initial_phi
 !JaV
-    initial_phi =0 
+    !initial_phi =0 
     y(1)=initial_phi
-    initial_phidot =  astart*Quint_phidot_start(initial_phi)
+    initial_phidot =  astart*Quint_phidot_start(initial_phi, Voi*1.d0)
     y(2)= initial_phidot*astart**2
 
     phi_a(1)=y(1)
@@ -346,7 +376,7 @@ dum = Voi
 !call nothing
 
     do i=1, NumPointsEx-1
-        !aend = da*i
+!        aend = da*i
         !aend = 1.d-15 + da*i 
         aend = exp(i*da + log(astart))
 
@@ -362,6 +392,7 @@ dum = Voi
 
         p = phidot_a(i+1)**2/2 - aend**2*Voi*Vofphi(phi_a(i+1),0)
         rhofrac = 3*(adot/aend)**2
+!    print *,'rhofrac', adot
         effint = effint + p/rhofrac
         omint = omint + (phidot_a(i+1)**2 -p)/rhofrac
         !print*, phidot_a(i+1)
@@ -369,7 +400,7 @@ dum = Voi
         Ome_ede = (0.5d0*phidot_a(i+1)**2 +aend**2*Voi*Vofphi(phi_a(i+1),0))/rhofrac 
 !rsss = rss(Ome_ede)
 !print *, 'wedwe', rssxx(Ome_ede)
-       if (mod(i,20) == 0)write (50,'(4G)') log(aend), Ome_ede,real((0.5d0*phidot_a(i+1)**2 - aend**2*Voi*Vofphi(phi_a(i+1),0))/(0.5d0*phidot_a(i+1)**2 + aend**2*Voi*Vofphi(phi_a(i+1),0))), phi_a(i)
+       if (mod(i,20) == 0)write (50,'(3(E15.7,TR7))') log(aend), Ome_ede,real((0.5d0*phidot_a(i+1)**2 - aend**2*Voi*Vofphi(phi_a(i+1),0))/(0.5d0*phidot_a(i+1)**2 + aend**2*Voi*Vofphi(phi_a(i+1),0)))
 
  !,(grhoc+grhob)*aend**(-1)/rhofrac,(grhog+grhornomass)*aend**(-2)/rhofrac
        !write (50,'(4G)') aend, Ome_ede, AngularDiameterDistance(1./aend - 1), Hofz(1./aend - 1)
@@ -400,7 +431,101 @@ Voif = Voi
     end subroutine Quint_init_background
 
 
+
+
+    subroutine find_ini_v0(astart2,initial_phi2,initial_phidot2, ret)
+    implicit none
+    real :: gaa = -10., gb =34.0
+    real (dl):: astart2,initial_phi2,initial_phidot2
+    real :: ret
+   
+    ret = bisect(ga_Vo, gaa, gb, 20)  
+
+    contains
+    function ga_Vo(Vo_ini2)
+    real, intent (in) :: Vo_ini2
+    real :: ga_Vo
+    real (dl):: atol
+    atol=1d-5
+!     ga_Vo =  Vo_ini**4 - 2.0*sin(Vo_ini)
+!     print *, Quint_GetOmegaFromInitial(astart,initial_phi,initial_phidot,atol,10**Vo_ini)
+!     print *, Quint_GetOmegaFromInitial(astart2,initial_phi2,initial_phidot2, 1d-5,exp(Vo_ini2))
+     ga_Vo= CP%omegav-   Quint_GetOmegaFromInitial(astart2,initial_phi2,initial_phidot2, 1d-5, exp(Vo_ini2))
+    end function ga_Vo
+
+    end subroutine find_ini_v0
+
+
+
+    subroutine find_ini_phi(a, Voi, ret)
+    implicit none
+    real :: gaa = -2., gb =5.0, Voi
+    real(dl) ::  a, z
+    real ::  ret 
+ 
+    ret =  bisect(ga_phi, gaa, gb,20) 
+
+    contains
+
+    function ga_phi(phi)
+    real, intent (in) :: phi
+    real test, ga_phi
+    test=log((4*Voi*Vofphi(phi*1.d0, 0)*7.d-3/(3*(Voi*Vofphi(phi*1.d0, 1))**2 - 12.*(Voi*Vofphi(phi*1.d0 ,0))**2))**(1/3.))
+    ga_phi = test - log(a)  
+!     ga_phi = phi**4 - 2.0*sin(phi)
+    end function ga_phi
+    end subroutine
+
+
+
+
+      function bisect(f,a,b,m)                                            
+      integer, intent (in) :: m                                         
+      real :: a, b, c, fa, fb, fc, error, bisect
+      integer :: n
+      interface                                                             
+      function f(x)                                                   
+      real, intent(in) :: x                                             
+      end function f                                                    
+      end interface
+
+      fa = f(a)                                                       
+      fb = f(b)
+      if ( sign(1.0,fa) == sign(1.0,fb) ) then                       
+        print *,"function has same sign at",a,b                       
+      else                                                            
+!        print *,"n    c    f(c)     error"                           
+        error = b - a
+        do n = 0,m                                                    
+            error = error/2.0
+            c  = a + error
+            fc = f(c)
+            if ( sign(1.0,fa) /= sign(1.0,fc) ) then           
+               b = c                  
+               fb = fc                                                
+            else                                                
+               a = c    
+               fa = fc  
+            endif                                               
+!            print *, n, c, fc, error                            
+         end do                                                 
+      end if   
+      bisect = c                                        
+   end function bisect  
+
+
+  
+
+
+      function ga(x)
+      real :: ga
+      real, intent (in) :: x
+      ga = x**4 - 2.0*sin(x)
+      end function
+
+
     subroutine nothing
+        
     print *,'Hollaaaa'
     end subroutine nothing
 
@@ -1703,7 +1828,7 @@ Voip =Voif
     if (quintessence) then
         clxq=y(EV%w_ix)
         vq=y(EV%w_ix+1)
-        dgrho=dgrho + phidot*vq +clxq*a2*Vofphi(phi,1)
+        dgrho=dgrho + phidot*vq +clxq*a2*Voip*Vofphi(phi,1)
         dgq=dgq + k*phidot*clxq
     else
         if (w_lam /= -1 .and. w_Perturb) then
@@ -2516,7 +2641,7 @@ Voip =Voif
     if (quintessence) then
         clxq=ay(EV%w_ix)
         vq=ay(EV%w_ix+1)
-        dgrho=dgrho + phidot*vq +clxq*a2*Vofphi(phi,1)
+        dgrho=dgrho + phidot*vq +clxq*a2*Voip*Vofphi(phi,1)
         dgq=dgq + k*phidot*clxq
     else
         if (w_lam /= -1 .and. w_Perturb) then
@@ -2587,7 +2712,7 @@ Voip =Voif
 
     if (quintessence) then
         ayprime(EV%w_ix)= vq
-        ayprime(EV%w_ix+1) = - 2*adotoa*vq - k*z*phidot - k2*clxq - a2*clxq*Vofphi(phi,2)
+        ayprime(EV%w_ix+1) = - 2*adotoa*vq - k*z*phidot - k2*clxq - a2*clxq*Voip*Vofphi(phi,2)
     else
         if (w_lam /= -1 .and. w_Perturb) then
             ayprime(EV%w_ix)= -3*adotoa*(cs2_lam-w_lam)*(clxq+3*adotoa*(1+w_lam)*vq/k) &

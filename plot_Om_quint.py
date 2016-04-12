@@ -23,8 +23,8 @@ rd_EHtoCAMB =153.19/149.281
 rs_lcdm = 147.42
 lna_cmb = np.log(1./(1+1060.0))
 
-quint = False
-
+quint = True
+rr = 4 #num of files
 
 file_Cls    = '_scalCls.dat'
 file_Mpk    = '_matterpower.dat'
@@ -34,19 +34,17 @@ file_mpk_lcdm   = 'test_lcdm_matterpower.dat'
 file_da_lcdm    = 'test_Da_lcdm.dat'
 
 
-if quint == False:
+if quint:
    dir = '/gpfs01/astro/workarea/jvazquez/cosmomc_Quint/camb/'
    root        = 'test_quint_'
    val = pd.read_table(dir + root + 'values.dat', names =['B', 'lambda', 'H0', 'rs', 's8', 'Om'])
    colspecs=([0,15],[24,37],[45,59])
-   rr = 4 #num of files
    
 else:
    dir = '/astro/u/jvazquez/BOSS/cosmomc_july_14/camb/'
    root = 'test_ede_'
    val = pd.read_table(dir + root + 'values.dat', names =['Ode', 'H0', 'rs', 's8', 'Om'])
    colspecs=([0,15],[24,37],[45,59])
-   rr = 4
 
 file_Oede   = root + 'Om_'
 file_Da     = root + 'Da_'
@@ -122,11 +120,13 @@ if True:
  cbar = plt.colorbar(sc)
  cbar.set_label('$H_0$', rotation=90)
  ax4.grid(True)
-# if not quint:
-# 	plt.axis([0.01, 0.09, -0.002, 0.001])
-#	plt.xticks(np.arange(0.01, 0.09, 0.02))   
- #plt.axis([0.01, 0.09, 0, 0.01])
- #plt.xticks(np.arange(0.01, 0.09, 0.02))
+ if not quint:
+ 	plt.axis([0.01, 0.09, -0.002, 0.001])
+	plt.xticks(np.arange(0.01, 0.09, 0.02))   
+ else:
+        plt.axis([0.02, 0.051, 0.0015, 0.005])
+        plt.xticks(np.arange(0.02, 0.051, 0.01))
+	plt.yticks(np.arange(0.0015,0.005, 0.001))
  plt.xlabel("$ \Omega_{ede}(z_{drag})$")
  plt.ylabel("$1 - r_{s,ede}/\sqrt{1-\Omega_{ede}}/r_{s,\Lambda}$")
 
@@ -137,8 +137,12 @@ if True:
  cbar = plt.colorbar(sc)
  ax5.grid(True)
  cbar.set_label('$\Omega_{m,0}$')
- #plt.axis([0.01, 0.09, 0.8, 0.88])
-# plt.xticks(np.arange(0.01, 0.091, 0.02))
+ if not quint:
+ 	plt.axis([0.015, 0.09, 0.5, 0.8])
+ 	plt.xticks(np.arange(0.015, 0.091, 0.02))
+ else:
+	plt.axis([0.01, 0.05, 0.7, 0.78])
+	plt.xticks(np.arange(0.015, 0.055, 0.01))
  plt.xlabel("$ \Omega_{ede}(z_{drag})$")
  plt.ylabel("$\sigma_8$")
 
@@ -149,9 +153,11 @@ if True:
  cbar = plt.colorbar(sc)
  ax6.grid(True)
  cbar.set_label('$H_0$')
- #if not quint:
-#	plt.xticks(np.arange(0.29, 0.31, 0.01))
- #plt.xticks(np.arange(0.2, 0.3, 0.04))
+ if not quint:
+	plt.xticks(np.arange(0.29, 0.32, 0.01))
+ else:
+	plt.axis([0.24, 0.28, 0.7, 0.78])
+ 	plt.xticks(np.arange(0.24, 0.28, 0.01))
  plt.xlabel("$\Omega_{m,0}$")
  plt.ylabel("$\sigma_8$")
 
@@ -160,6 +166,10 @@ if True:
  for i in range(rr):
      ax1.plot(dist_lcd['z'], da[i], color = Usf.colour(i+1),
               label = '$\Omega_{ede} = $%1.3f'%(Oede_cmb[i]))
+ if not quint:
+        plt.yticks(np.arange(0.88, 1.04, 0.04))
+ else:
+	plt.yticks(np.arange(0.88, 1.04, 0.04))
  ax1.grid(True)
  pylab.xscale('log')
  plt.xlabel("$z$")
@@ -174,7 +184,7 @@ if True:
 
  ax2 = fig.add_subplot(3,3,8)
  for i in range(rr):
-     ax2.plot(dist_lcd['z'], dh[i], color=Usf.colour(i+1))
+     ax2.plot(dist_lcd['z'], dh[i], color=Usf.colour(i+1))	
  ax2.plot([0.01,10000], [1,1], 'k-')
  ax2.grid(True)
  pylab.xscale('log')
@@ -190,7 +200,6 @@ if True:
  for i in range(rr):
     ax3.plot(ll, cls[i], color=Usf.colour(i+1), label = 'LCDM' if i==5 else None)
  plt.xlim([10,2500])
- #plt.ylim([0.6,1.5])
  ax3.grid(True)
  plt.xlabel("$l$")
  ax3.set_xscale('log')
@@ -231,5 +240,5 @@ if True:
  plt.xlim([1,1.0e6]) #xmax = 1.0e6)
 
  plt.tight_layout()
+ plt.savefig(root + 'Om.pdf')
  plt.show()
- plt.savefig(root + 'Om.pdf' )

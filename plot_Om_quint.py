@@ -20,7 +20,12 @@ zLyaC  = 2.36+0.06
 z_CMB = 1090.43
 rd_EHtoCAMB =153.19/149.281
 
+
+H0_lcdm = 67.31
 rs_lcdm = 147.42
+Om_lcdm = 0.31457
+sig_lcdm= 0.82853
+
 lna_cmb = np.log(1./(1+1060.0))
 
 quint = True
@@ -70,7 +75,6 @@ for i in range(rr):
     Oede_cmb.append(interp_Oede(lna_cmb))
     one_fact.append(1.0 - (val['rs'][i]/rs_lcdm)*(1.0 - interp_Oede(lna_cmb) )**(-0.5))
 
-
     #Da/Dh files
 da, dh = [], []
 dist_lcd   = pd.read_fwf(dir + file_da_lcdm, colspecs = colspecs, names = ['z', 'da', 'dh'])
@@ -106,70 +110,86 @@ for k in range(rr):
 #    mpk.append(mpk_interp(kk_lcdm)/mpk_lcdm)
 
 
+def constraint(Oede):
+    return (1.0 - Oede )**(0.5)
+
+
+def plot_Oede(i, param, ylabel= None, ytick=None, ymax=1.01, quint= False, ylim=None):
+    ax = fig.add_subplot(4,3,i)
+    for i in range(rr):
+        sc = ax.scatter(Oede_cmb[i], param[i], color=Usf.colour(i+1)) 
+    ax.grid(True)
+    if quint:
+       plt.xticks(np.arange(0.02, 0.0601, 0.01))
+       plt.xlim([0.02,0.0601])
+    else:
+       plt.xticks(np.arange(0.0, 0.09, 0.02))
+       plt.xlim(xmin=0)
+    if ylim is not None:
+       yin, yf = ylim
+       plt.ylim([yin, yf])
+    if ytick is not None:
+       yin, yf, yd= ytick 
+       plt.yticks(np.arange(yin, yf, yd))
+    plt.xlabel("$ \Omega_{ede}(z_{drag})$")
+    plt.ylabel(ylabel)
 
 
 #---------------Plot Files----------------------#
 
 if True:
 
- fig = pylab.figure(figsize=(14,11))
-
-
- ax4 = fig.add_subplot(3,3,4)
- sc = ax4.scatter(Oede_cmb, one_fact, c=val['H0'], s =40, cmap=cm.Blues, label = 'H0')
- cbar = plt.colorbar(sc)
- cbar.set_label('$H_0$', rotation=90)
- ax4.grid(True)
- if not quint:
- 	plt.axis([0.01, 0.09, -0.002, 0.001])
-	plt.xticks(np.arange(0.01, 0.09, 0.02))   
- else:
-        plt.axis([0.02, 0.051, 0.0015, 0.005])
-        plt.xticks(np.arange(0.02, 0.051, 0.01))
-	plt.yticks(np.arange(0.0015,0.005, 0.001))
- plt.xlabel("$ \Omega_{ede}(z_{drag})$")
- plt.ylabel("$1 - r_{s,ede}/\sqrt{1-\Omega_{ede}}/r_{s,\Lambda}$")
-
-
-
- ax5 = fig.add_subplot(3,3,5)
- sc = ax5.scatter(Oede_cmb, val['s8'], c=val['Om'], s =40, cmap=cm.Blues, label = 'Om0')
- cbar = plt.colorbar(sc)
- ax5.grid(True)
- cbar.set_label('$\Omega_{m,0}$')
- if not quint:
- 	plt.axis([0.015, 0.09, 0.5, 0.8])
- 	plt.xticks(np.arange(0.015, 0.091, 0.02))
- else:
-	plt.axis([0.01, 0.05, 0.7, 0.78])
-	plt.xticks(np.arange(0.015, 0.055, 0.01))
- plt.xlabel("$ \Omega_{ede}(z_{drag})$")
- plt.ylabel("$\sigma_8$")
-
-
-
- ax6 = fig.add_subplot(3,3,6)
- sc = ax6.scatter(val['Om'], val['s8'], c=val['H0'], s =40, cmap=cm.Blues, label = 'h0')
- cbar = plt.colorbar(sc)
- ax6.grid(True)
- cbar.set_label('$H_0$')
- if not quint:
-	plt.xticks(np.arange(0.29, 0.32, 0.01))
- else:
-	plt.axis([0.24, 0.28, 0.7, 0.78])
- 	plt.xticks(np.arange(0.24, 0.28, 0.01))
- plt.xlabel("$\Omega_{m,0}$")
- plt.ylabel("$\sigma_8$")
-
-
- ax1 = fig.add_subplot(3,3,7)
+ fig = pylab.figure(figsize=(10,12))
+ ax8 =  fig.add_subplot(4, 3, 1)
  for i in range(rr):
-     ax1.plot(dist_lcd['z'], da[i], color = Usf.colour(i+1),
-              label = '$\Omega_{ede} = $%1.3f'%(Oede_cmb[i]))
- if not quint:
-        plt.yticks(np.arange(0.88, 1.04, 0.04))
- else:
-	plt.yticks(np.arange(0.88, 1.04, 0.04))
+     z = np.exp(-lna[i])
+     ax8.plot(z, Oede[i], color=Usf.colour(i+1))
+ ax8.grid(True)
+ ax8.set_xscale('log')
+ plt.xlabel("$z+1$")
+ plt.yticks(np.arange(0,1,0.2))
+ plt.ylabel("$\\Omega_{ede}$")
+ plt.xlim([1,1.0e6])
+
+
+ ax9 = fig.add_subplot(4, 3, 2)
+ for i in range(rr):
+    z = np.exp(-lna[i])
+    ax9.plot(z, wede[i], color=Usf.colour(i+1),
+		label = '$\Omega_{ede} = $%1.3f'%(Oede_cmb[i]))
+ ax9.legend(loc='center left', bbox_to_anchor=(1.5, 0.5))
+ ax9.grid(True)
+ ax9.set_xscale('log')
+ plt.yticks(np.arange(-1.2,0.4,0.4))
+ plt.xlabel("$z+1$")
+ plt.ylabel("$w_{ede}$")
+ plt.xlim([1,1.0e6])
+
+ 
+ ax4 = fig.add_subplot(4,3,4)
+ Oede_th = np.arange(0, 0.1, 0.005)   
+ ax4.plot( Oede_th, constraint(Oede_th))
+
+ if quint: 
+    plot_Oede(4, list(val['rs']/rs_lcdm), ylabel ="$r_{s,ede}/r_{s,\Lambda}$", ytick=(0.96, 0.995, 0.01), quint=True, ylim=[0.96,0.99])
+    plot_Oede(5, list(val['Om']/Om_lcdm),  ylabel ="$\Omega_{m,0}$", ytick=(0.74, 0.88, 0.04), quint=True, ylim=[0.74, 0.88])
+    plot_Oede(7, list(val['H0']/H0_lcdm),  ylabel ="$H_0$", ytick=(1.05, 1.181, 0.05), quint=True, ylim=[1.05,1.181])
+    plot_Oede(8, list(val['s8']/sig_lcdm),  ylabel ="$\sigma_8$", ytick=(0.8, 0.951, 0.05), quint=True, ylim=[0.8, 0.951])
+  
+ else: 
+    plot_Oede(4, list(val['rs']/rs_lcdm), ylabel ="$r_{s,ede}/r_{s,\Lambda}$", ytick=(0.94, 1.01, 0.02))
+    plot_Oede(5, list(val['Om']/Om_lcdm),  ylabel ="$\Omega_{m,0}$", ytick=(0.92, 1.01, 0.02))
+    plot_Oede(7, list(val['H0']/H0_lcdm),  ylabel ="$H_0$", ytick=(1., 1.035, 0.01), ymax=1.03)
+    plot_Oede(8, list(val['s8']/sig_lcdm),  ylabel ="$\sigma_8$", ytick=(0.6, 1.01, 0.1))
+
+
+ ax1 = fig.add_subplot(4,3,10)
+ for i in range(rr):
+     ax1.plot(dist_lcd['z'], da[i], color = Usf.colour(i+1))
+ #if not quint:
+ #       plt.yticks(np.arange(0.85, 1.2, 0.05))
+ #else:
+ #	plt.yticks(np.arange(0.85, 1.1, 0.05))
  ax1.grid(True)
  pylab.xscale('log')
  plt.xlabel("$z$")
@@ -180,9 +200,9 @@ if True:
  plt.errorbar(zCMASS, 1.044/rd_EHtoCAMB , yerr= 0.015)
  plt.errorbar(zLyaA, 0.973,  yerr= 0.055)
  plt.errorbar(zLyaC, 0.93,   yerr= 0.036)
+ plt.yticks(np.arange(0.85, 1.05, 0.05))
 
-
- ax2 = fig.add_subplot(3,3,8)
+ ax2 = fig.add_subplot(4,3,11)
  for i in range(rr):
      ax2.plot(dist_lcd['z'], dh[i], color=Usf.colour(i+1))	
  ax2.plot([0.01,10000], [1,1], 'k-')
@@ -196,10 +216,11 @@ if True:
  plt.ylabel("$[D_{h,ede}/r_{s,ede}]/[D_{h,\Lambda}/r_{s,\Lambda}]$")
 
 
- ax3 = fig.add_subplot(3,3,9)
+ ax3 = fig.add_subplot(4,3,12)
  for i in range(rr):
-    ax3.plot(ll, cls[i], color=Usf.colour(i+1), label = 'LCDM' if i==5 else None)
+    ax3.plot(ll, cls[i], color=Usf.colour(i+1))
  plt.xlim([10,2500])
+ ax3.plot([1,2500], [1,1], 'k-')
  ax3.grid(True)
  plt.xlabel("$l$")
  ax3.set_xscale('log')
@@ -219,26 +240,7 @@ if True:
  #plt.legend(loc="upper right")
 
 
- ax8 =  fig.add_subplot(3, 3, 1)
- for i in range(rr):
-     z = np.exp(-lna[i])
-     ax8.plot(z, Oede[i], color=Usf.colour(i+1)) 
- ax8.grid(True) 
- ax8.set_xscale('log') 
- plt.xlabel("$z+1$") 
- plt.ylabel("$\\Omega_{ede}$")
- plt.xlim([1,1.0e6])#xmax = 1.0e6)
 
- ax9 = fig.add_subplot(3, 3, 2)
- for i in range(rr):
-    z = np.exp(-lna[i])
-    ax9.plot(z, wede[i], color=Usf.colour(i+1))
- ax9.grid(True)
- ax9.set_xscale('log')
- plt.xlabel("$z+1$") 
- plt.ylabel("$w_{ede}$")
- plt.xlim([1,1.0e6]) #xmax = 1.0e6)
-
- plt.tight_layout()
- plt.savefig(root + 'Om.pdf')
- plt.show()
+plt.tight_layout()
+plt.savefig(root + 'Om.pdf')
+plt.show()

@@ -2,12 +2,12 @@
 
 def setting_plot():
     params1 = {'backend': 'pdf',
-               'axes.labelsize': 14,
+               'axes.labelsize': 16,
                'text.fontsize': 16,
                'xtick.labelsize': 16,
                'ytick.labelsize': 16,
                #'legend.draw_frame': False,
-               'legend.fontsize': 12,
+               'legend.fontsize': 14,
                'lines.markersize': 6,
                'font.size': 16,
                'text.usetex': True}
